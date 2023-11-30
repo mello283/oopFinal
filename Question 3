@@ -1,0 +1,131 @@
+
+
+class Builder:
+    def getWheel(self):
+        pass
+
+    def getContainer(self):
+        pass
+
+    def getBody(self):
+        pass
+
+    def build(self):
+        pass
+
+class Body:
+    def __init__(self, shape):
+        self.shape = shape
+
+    def getShape(self):
+        return self.shape
+
+
+class Container:
+    def __init__(self, volume):
+        self.volume = volume
+
+    def getVolume(self):
+        return self.volume
+
+class WheelBuilder(Builder):
+    def __init__(self):
+        self.widget = Widget()
+
+    def getWheel(self):
+        self.widget.attachWheel(Wheel(size=4))
+        return self
+
+    def getContainer(self):
+        self.widget.setContainerVolume(Container(volume=5))
+        return self
+
+    def getBody(self):
+        self.widget.setBody(Body(shape="bucket"))
+        return self
+
+    def build(self):
+        return self.widget
+
+
+class GlassBuilder(Builder):
+    def __init__(self):
+        self.widget = Widget()
+
+    def getWheel(self):
+        self.widget.attachWheel(Wheel(size=0))
+        return self
+
+    def getContainer(self):
+        self.widget.setContainerVolume(Container(volume=12))
+        return self
+
+    def getBody(self):
+        self.widget.setBody(Body(shape="glass"))
+        return self
+
+    def build(self):
+        return self.widget
+
+class Wheel:
+    def __init__(self, size):
+        self.size = size
+
+class Widget:
+    def __init__(self):
+        self.wheels = []
+        self.container = None
+        self.body = None
+
+    def attachWheel(self, wheel):
+        self.wheels.append(wheel)
+
+    def setContainerVolume(self, volume):
+        self.container = volume
+
+    def setBody(self, bodytype):
+        self.body = bodytype
+
+    def getWheels(self):
+        return self.wheels
+
+    def getContainerVolume(self):
+        if self.container:
+            return self.container.volume
+        else:
+            return None
+
+    def getBodyType(self):
+        if self.body:
+            return self.body.shape
+        else:
+            return None
+
+    @classmethod
+    def create_bucket_widget(cls):
+        wheel_builder = WheelBuilder()
+        bucket_widget = wheel_builder.getWheel().getContainer().getBody().build()
+        return bucket_widget
+
+    @classmethod
+    def create_glass_widget(cls):
+        glass_builder = GlassBuilder()
+        glass_widget = glass_builder.getWheel().getContainer().getBody().build()
+        return glass_widget
+
+
+    def getBodyType(self):
+        if self.body:
+            return self.body.shape
+        else:
+            return None
+
+
+wheel_builder = WheelBuilder()
+bucket_widget = wheel_builder.getWheel().getContainer().getBody().build()
+
+glass_builder = GlassBuilder()
+glass_widget = glass_builder.getWheel().getContainer().getBody().build()
+
+print(bucket_widget)
+print(glass_widget)
