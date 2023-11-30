@@ -1,0 +1,93 @@
+#include <string>
+#include <mutex>
+#include <cstring>
+
+enum class ErrorLevel { SEVERE, ERROR, WARNING, INFO };
+
+struct ErrorContext {
+  ErrorLevel errlevel;
+  const char* logmsg;
+};
+
+extern void SDAOSlogger(struct ErrorContext& logcontext);
+
+char* _strdup(const char* str) {
+  if (str == nullptr) {
+    return nullptr;
+  }
+
+  size_t strLen = strlen(str);
+  char* newStr = (char*)malloc(strLen + 1);
+  if (newStr == nullptr) {
+    return nullptr;
+  }
+
+  strcpy(newStr, str);
+  return newStr;
+}
+
+class SDOSLoggerFacade {
+private:
+  static SDOSLoggerFacade instance;
+  std::mutex mutex;
+
+  // Initialize the logger instance in the constructor
+  SDOSLoggerFacade() {
+    ErrorContext logContext;
+    logContext.errlevel = ErrorLevel::INFO;
+    logContext.logmsg = "";
+
+    SDAOSlogger(logContext);
+    free((void*)logContext.logmsg);
+  }
+
+public:
+  static SDOSLoggerFacade& getInstance() {
+    static SDOSLoggerFacade instance;
+    return instance;
+  }
+
+  void log(ErrorLevel errlevel, const std::string& message) {
+    std::lock_guard<std::mutex> lock(mutex);
+
+    ErrorContext logContext;
+    logContext.errlevel = errlevel;
+    logContext.logmsg = _strdup(message.c_str());
+
+    SDAOSlogger(logContext);
+    free((void*)logContext.logmsg);
+  }
+
+  void logSevere(const std::string& message) {
+    log(ErrorLevel::SEVERE, message);
+  }
+
+  void logError(const std::string& message) {
+    log(ErrorLevel::ERROR, message);
+  }
+
+  void logWarning(const std::string& message) {
+    log(ErrorLevel::WARNING, message);
+  }
+
+  void logInfo(const std::string& message) {
+    log(ErrorLevel::INFO, message);
+  }
+};
+
+// Singleton instance of the logger
+SDOSLoggerFacade& getSDOSLoggerFacade() {
+  return SDOSLoggerFacade::getInstance();
+}
+
+int main() {
+  // Example usage of the SDOSLoggerFacade class
+  SDOSLoggerFacade& logger = getSDOSLoggerFacade();
+
+  logger.logSevere("This is a severe error message.");
+  logger.logError("This is an error message.");
+  logger.logWarning("This is a warning message.");
+  logger.logInfo("This is an info message.");
+
+  return 0;
+}
